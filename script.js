@@ -17,18 +17,13 @@ let turnP1 = true;
 const victoryPts = 100;
 
 const dieSt = {
-    die1: 0,
-    die2: 0,
-    curScore1: 0,
-    curScore2: 0,
-    totScore1: 0,
-    totScore2: 0,
+    die: [0, 0],
+    curScore: [0, 0],
+    totScore: [0, 0]
 }
 // Starting code - unlucky factor (percentage of throwing 1) 
-let countAllP1 = 0;
-let countOneP1 = 0;
-let countAllP2 = 0;
-let countOneP2 = 0;
+const countAll = [0, 0];
+const countOne = [0, 0];
 
 
 function die(face) {
@@ -42,20 +37,18 @@ function die(face) {
 
 function unlucky() {
     // Unlucky factor (percentage of throwing 1) 
-    let unluckyP1 = Math.round(countOneP1 / countAllP1 * 100) + '%'
-    let unluckyP2 = Math.round(countOneP2 / countAllP2 * 100) + '%'
-    // Display in the end
     curLabelEl.forEach(el => el.innerText = 'unlucky');
-    curEl.forEach((el, i) => el.innerText = eval('unluckyP' + (i + 1)));
+    curEl.forEach((el, i) => el.innerText = `${Math.round(countOne[i] / countAll[i] * 100)} %`);
 }
 
-function dispTotalScore(Score, curE, totE) {
-    dieSt['tot' + Score] += Math.round(dieSt['cur' + Score]);
-    dieSt['cur' + Score] = 0;
-    totE.innerText = dieSt['tot' + Score];
+function dispTotalScore(i, curE, totE) {
+    let { totScore, curScore } = dieSt;
+    totScore[i] += Math.round(curScore[i]);
+    curScore[i] = 0;
+    totE.innerText = totScore[i];
     curE.innerText = 0;
     // If total pts above victory pts
-    if (dieSt['tot' + Score] >= victoryPts) {
+    if (totScore[i] >= victoryPts) {
         if (turnP1) { playerEl[0].classList.add("player--winner") }
         else { playerEl[1].classList.add("player--winner") };
         btnRoll.disabled = true;
@@ -69,25 +62,25 @@ function dispTotalScore(Score, curE, totE) {
 }
 
 function boxShadow(num, color) {
-    if (dieSt.die1 === num) { diceEl[0].style.boxShadow = `0 0 4px ${color}` }
-    if (dieSt.die2 === num) { diceEl[1].style.boxShadow = `0 0 4px ${color}` }
+    if (dieSt.die[0] === num) { diceEl[0].style.boxShadow = `0 0 4px ${color}` }
+    if (dieSt.die[1] === num) { diceEl[1].style.boxShadow = `0 0 4px ${color}` }
 }
 
-function calcCurScore(Score, curE, totE) {
-    let { die1, die2 } = dieSt;
+function calcCurScore(i, curE, totE) {
+    let { die } = dieSt;
     if (turnP1) {
-        countAllP1++; if (die1 === 1 || die2 === 1) { countOneP1++ }
-    } else { countAllP2++; if (die1 === 1 || die2 === 1) { countOneP2++ } }
-    if (die1 + die2 === 2) {
+        countAll[0]++; if (die[0] === 1 || die[1] === 1) { countOne[0]++ }
+    } else { countAll[1]++; if (die[0] === 1 || die[1] === 1) { countOne[1]++ } }
+    if (die[0] + die[1] === 2) {
         boxShadow(1, 'Aqua');
-        dieSt['cur' + Score] = 0;
-        dispTotalScore(Score, curE, totE)
+        dieSt.curScore[i] = 0;
+        dispTotalScore(i, curE, totE)
     } else {
-        dieSt['cur' + Score] += (die1 + die2);
-        if (die1 === 1 || die2 === 1) {
+        dieSt.curScore[i] += (die[0] + die[1]);
+        if (die[0] === 1 || die[1] === 1) {
             boxShadow(1, 'Aqua');
-            dieSt['cur' + Score] = dieSt['cur' + Score] / 3;
-            dispTotalScore(Score, curE, totE)
+            dieSt.curScore[i] = dieSt.curScore[i] / 3;
+            dispTotalScore(i, curE, totE)
         }
     }
 }
@@ -97,20 +90,20 @@ function roll() {
         // Generate a random dice roll
         let rand1 = Math.ceil(Math.random() * 6);
         let rand2 = Math.ceil(Math.random() * 6);
-        dieSt.die1 = rand1;
-        dieSt.die2 = rand2;
+        dieSt.die[0] = rand1;
+        dieSt.die[1] = rand2;
         // Calculate current score
         (turnP1)
-            ? calcCurScore('Score1', curEl[0], totEl[0])
-            : calcCurScore('Score2', curEl[1], totEl[1]);
+            ? calcCurScore(0, curEl[0], totEl[0])
+            : calcCurScore(1, curEl[1], totEl[1]);
         // Disaply current score
-        if (dieSt.totScore1 < victoryPts && dieSt.totScore2 < victoryPts) {
-            curEl[0].innerText = parseInt(dieSt.curScore1);
-            curEl[1].innerText = parseInt(dieSt.curScore2);
+        if (dieSt.totScore[0] < victoryPts && dieSt.totScore[1] < victoryPts) {
+            curEl[0].innerText = parseInt(dieSt.curScore[0]);
+            curEl[1].innerText = parseInt(dieSt.curScore[1]);
         }
         // Display dice
-        diceEl[0].setAttribute('class', `die fas fa-dice-${die(dieSt.die1)} fa-7x anim`);
-        diceEl[1].setAttribute('class', `die fas fa-dice-${die(dieSt.die2)} fa-7x anim`);
+        diceEl[0].setAttribute('class', `die fas fa-dice-${die(dieSt.die[0])} fa-7x anim`);
+        diceEl[1].setAttribute('class', `die fas fa-dice-${die(dieSt.die[1])} fa-7x anim`);
     }, 100)
 }
 
@@ -119,8 +112,8 @@ function rollHandle() {
     roll()
     btnRoll.disabled = true;
     setTimeout(() => {
-        // Disable button for 1s
-        if (dieSt.totScore1 < victoryPts && dieSt.totScore2 < victoryPts) {
+        // Disable button for 0.7s
+        if (dieSt.totScore[0] < victoryPts && dieSt.totScore[1] < victoryPts) {
             btnRoll.disabled = false;
         }
         // Reset animation
@@ -130,12 +123,12 @@ function rollHandle() {
 
 function holdHandle() {
     (turnP1)
-        ? dispTotalScore('Score1', curEl[0], totEl[0])
-        : dispTotalScore('Score2', curEl[1], totEl[1])
+        ? dispTotalScore(0, curEl[0], totEl[0])
+        : dispTotalScore(1, curEl[1], totEl[1])
 }
 
 function restartHandle() {
-    if (dieSt.totScore1 < victoryPts && dieSt.totScore2 < victoryPts) {
+    if (dieSt.totScore[0] < victoryPts && dieSt.totScore[1] < victoryPts) {
         // If game restarted before (victory points), change turn
         turnP1 = !turnP1;
         playerEl.forEach(p => p.classList.toggle("player--active"))
@@ -146,11 +139,11 @@ function restartHandle() {
         btnHold.disabled = false;
     }
     // Reset dieState
-    ['curScore1', 'curScore2', 'totScore1', 'totScore2'].forEach(score => dieSt[score] = 0);
+    dieSt.curScore[0] = dieSt.curScore[1] = dieSt.totScore[0] = dieSt.totScore[1] = 0;
+    // Reset ulucky factor
+    countAll[0] = countOne[0] = countAll[1] = countOne[1] = 0;
     // Reset display
     [...totEl, ...curEl].forEach(disp => disp.innerText = 0);
-    // Reset console (bad luck %)
-    countAllP1 = countOneP1 = countAllP2 = countOneP2 = 0;
     // Reset current label
     curLabelEl.forEach(el => el.innerText = 'current');
 }
@@ -158,4 +151,3 @@ function restartHandle() {
 btnNew.addEventListener('click', restartHandle)
 btnHold.addEventListener('click', holdHandle)
 btnRoll.addEventListener('click', rollHandle)
-
